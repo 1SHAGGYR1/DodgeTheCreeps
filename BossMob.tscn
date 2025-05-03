@@ -1,0 +1,43 @@
+[gd_scene load_steps=6 format=3 uid="uid://c5r5rggmcpawg"]
+
+[ext_resource type="Script" uid="uid://cms818jjbxb2y" path="res://BossMob.cs" id="1_6lbbi"]
+[ext_resource type="Texture2D" uid="uid://se46a8wlr5g5" path="res://art/enemyWalking_1.png" id="1_wixse"]
+[ext_resource type="Texture2D" uid="uid://co34uw0k2lfjp" path="res://art/enemyWalking_2.png" id="2_6lbbi"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_blbt7"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_wixse")
+}, {
+"duration": 1.0,
+"texture": ExtResource("2_6lbbi")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 3.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_yjb3h"]
+radius = 49.3333
+height = 136.0
+
+[node name="BossMob" type="RigidBody2D" groups=["BossMob", "Mobs"]]
+collision_mask = 0
+gravity_scale = 0.0
+script = ExtResource("1_6lbbi")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(0.75, 0.75)
+sprite_frames = SubResource("SpriteFrames_blbt7")
+animation = &"walk"
+frame = 1
+frame_progress = 0.606371
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(-3, 0)
+rotation = 1.5708
+scale = Vector2(0.75, 0.75)
+shape = SubResource("CapsuleShape2D_yjb3h")
+
+[node name="VisibleOnScreenNotifier2D" type="VisibleOnScreenNotifier2D" parent="."]
