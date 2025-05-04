@@ -5,7 +5,7 @@ public partial class Main : Node
 {
     [Export] public PackedScene MobScene { get; set; }
 
-    [Export] public PackedScene BossMobScene { get; set; }
+    [Export] public PackedScene TrackingMobScene { get; set; }
 
     private int _score;
 
@@ -41,40 +41,33 @@ public partial class Main : Node
 
     private void OnMobTimerTimeout()
     {
-        // SpawnRegularMob();
+        SpawnRegularMob();
 
-        var mobBoss = TryGetMobBoss();
-        if (mobBoss is not null)
+        var trackingMob = TryGetMobBoss();
+        if (_score % 25 == 0 && _score > 0 && trackingMob is null)
         {
-            var player = GetNode<Player>("Player");
-            mobBoss.Recalibrate(player.Position);
-        }
-        else if (_score % 5 == 0 && _score > 0)
-        {
-            SpawnBossMob();
+            SpawnTrackingMob();
         }
     }
 
-    private BossMob? TryGetMobBoss()
+    private TrackingMob? TryGetMobBoss()
     {
         var bossMob = GetTree().GetFirstNodeInGroup("BossMob");
-        return bossMob as BossMob;
+        return bossMob as TrackingMob;
     }
 
-    private void SpawnBossMob()
+    private void SpawnTrackingMob()
     {
-        var bossMob = BossMobScene.Instantiate<BossMob>();
+        var trackingMob = TrackingMobScene.Instantiate<TrackingMob>();
         
         var mobSpawnLocation = GetSpawnLocation();
-        bossMob.Position = mobSpawnLocation.Position;
+        trackingMob.Position = mobSpawnLocation.Position;
         
-        var player = GetNode<Player>("Player");
-        bossMob.Recalibrate(player.Position);
-        AddChild(bossMob);
+        AddChild(trackingMob);
     }
 
     private void SpawnRegularMob()
-    {
+    { 
         var newMob = MobScene.Instantiate<Mob>();
         var mobSpawnLocation = GetSpawnLocation();
 

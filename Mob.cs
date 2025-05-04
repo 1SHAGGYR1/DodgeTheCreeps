@@ -16,7 +16,7 @@ public partial class Mob : RigidBody2D
         return mobTypeAnimations[Random.Shared.Next(mobTypeAnimations.Length)];
     }
 
-    protected void OnVisibleOnScreenNotifier2dScreenExited()
+    private void OnVisibleOnScreenNotifier2dScreenExited()
     {
         QueueFree();
     }
