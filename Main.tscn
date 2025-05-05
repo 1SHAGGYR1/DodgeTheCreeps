@@ -52,6 +52,7 @@ stream = ExtResource("6_3dxm6")
 
 [node name="Music" type="AudioStreamPlayer" parent="."]
 stream = SubResource("AudioStreamOggVorbis_lgr22")
+volume_db = -5.0
 
 [connection signal="Hit" from="Player" to="." method="GameOver"]
 [connection signal="timeout" from="MobTimer" to="." method="OnMobTimerTimeout"]

@@ -20,6 +20,23 @@ public partial class Player : Area2D
         Hide();
     }
 
+    public override void _Input(InputEvent @event)
+    {
+        if (!Visible)
+        {
+            return;
+        }
+        
+        if (@event is InputEventMouseMotion eventMouseMotion)
+        {
+            var eye = GetNode<TextureRect>("Eye");
+            var eyeCenter = eye.GlobalPosition + eye.PivotOffset;
+            
+            var newAngle = eventMouseMotion.GlobalPosition - eyeCenter;
+            eye.Rotation = newAngle.Angle();
+        }
+    }
+
     public override void _Process(double delta)
     {
         var velocity = Vector2.Zero;
