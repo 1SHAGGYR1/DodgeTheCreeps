@@ -31,7 +31,6 @@ public partial class Player : Area2D
         {
             var eye = GetNode<TextureRect>("Eye");
             var eyeCenter = eye.GlobalPosition + eye.PivotOffset;
-            
             var newAngle = eventMouseMotion.GlobalPosition - eyeCenter;
             eye.Rotation = newAngle.Angle();
         }
