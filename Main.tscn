@@ -1,10 +1,11 @@
-[gd_scene load_steps=10 format=4 uid="uid://cwa18ubk1ftgr"]
+[gd_scene load_steps=11 format=4 uid="uid://cwa18ubk1ftgr"]
 
 [ext_resource type="Script" uid="uid://bcv3nwnh0jsy1" path="res://Main.cs" id="1_r0du0"]
 [ext_resource type="PackedScene" uid="uid://rlhqfjkf4cwt" path="res://mob.tscn" id="2_cm0pq"]
 [ext_resource type="PackedScene" uid="uid://ddmkfuyre06jg" path="res://TrackingMob.tscn" id="3_3dxm6"]
 [ext_resource type="PackedScene" uid="uid://bqg1uj0cda1gt" path="res://Player.tscn" id="3_fos0i"]
 [ext_resource type="PackedScene" uid="uid://bnb351o4wnwww" path="res://Hud.tscn" id="4_cm0pq"]
+[ext_resource type="PackedScene" uid="uid://dahuhlvfreek2" path="res://PlayerProjectile.tscn" id="4_lgr22"]
 [ext_resource type="AudioStream" uid="uid://3a1em5j7011x" path="res://art/gameover.wav" id="6_3dxm6"]
 
 [sub_resource type="Curve2D" id="Curve2D_3dxm6"]
@@ -26,6 +27,7 @@ loop = true
 script = ExtResource("1_r0du0")
 MobScene = ExtResource("2_cm0pq")
 TrackingMobScene = ExtResource("3_3dxm6")
+PlayerProjectileScene = ExtResource("4_lgr22")
 
 [node name="Player" parent="." instance=ExtResource("3_fos0i")]
 

@@ -7,7 +7,11 @@ public partial class Main : Node
 
     [Export] public PackedScene TrackingMobScene { get; set; }
 
+    [Export] public PackedScene PlayerProjectileScene { get; set; }
+
     private int _score;
+
+    private bool _gameActive;
 
     public void NewGame()
     {
@@ -23,6 +27,29 @@ public partial class Main : Node
         var startTimer = GetNode<Timer>("StartTimer");
         startTimer.Start();
         GetNode<AudioStreamPlayer>("Music").Play();
+        _gameActive = true;
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (_gameActive && @event is InputEventMouseButton { Pressed: true } eventMouseButton)
+        {
+            // TODO: calculate once per app
+            var collisionShape = GetNode<CollisionShape2D>("Player/CollisionShape2D");
+            var collisionShapeRadius = (collisionShape.Shape as CapsuleShape2D)!.Radius;
+            
+            var eye = GetNode<TextureRect>("Player/Eye");
+            var eyeCenter = eye.GlobalPosition + eye.PivotOffset.Rotated(eye.Rotation) * eye.Scale;
+            var newAngle = eventMouseButton.GlobalPosition - eyeCenter;
+            
+            var projectile = PlayerProjectileScene.Instantiate<PlayerProjectile>();
+            
+            projectile.Position = eyeCenter + new Vector2(collisionShapeRadius, 0).Rotated(eye.Rotation);
+            projectile.Rotation = newAngle.Angle() + float.Pi / 2;
+            projectile.LinearVelocity = newAngle.Normalized() * projectile.Speed;
+                
+            AddChild(projectile);
+        }
     }
 
     private void GameOver()
@@ -37,6 +64,8 @@ public partial class Main : Node
         GetNode<AudioStreamPlayer>("DeathSound").Play();
 
         GetTree().CallGroup("Mobs", Node.MethodName.QueueFree);
+        GetTree().CallGroup("Projectiles", Node.MethodName.QueueFree);
+        _gameActive = false;
     }
 
     private void OnMobTimerTimeout()

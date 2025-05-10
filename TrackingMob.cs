@@ -32,4 +32,13 @@ public partial class TrackingMob : Area2D
         // TODO: puff animation
         QueueFree();
     }
+
+    private void OnBodyEntered(Node2D body)
+    {
+        if (body is PlayerProjectile projectile)
+        {
+            projectile.Remove(); 
+            QueueFree();
+        }
+    }
 }

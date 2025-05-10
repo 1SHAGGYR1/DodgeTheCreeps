@@ -5,7 +5,7 @@ public partial class Player : Area2D
     [Signal]
     public delegate void HitEventHandler();
 
-    [Export] public int Speed { get; set; } = 400; // How fast the player will move (pixels/sec).
+    [Export] public int Speed { get; set; } = 400;
 
     public Vector2 ScreenSize; // Size of the game window.
 
@@ -26,11 +26,11 @@ public partial class Player : Area2D
         {
             return;
         }
-        
+
         if (@event is InputEventMouseMotion eventMouseMotion)
         {
             var eye = GetNode<TextureRect>("Eye");
-            var eyeCenter = eye.GlobalPosition + eye.PivotOffset;
+            var eyeCenter = eye.GlobalPosition + eye.PivotOffset.Rotated(eye.Rotation) * eye.Scale;
             var newAngle = eventMouseMotion.GlobalPosition - eyeCenter;
             eye.Rotation = newAngle.Angle();
         }
@@ -60,25 +60,22 @@ public partial class Player : Area2D
             velocity.X += Speed;
         }
 
-        var animatedSprite2D = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+        var animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 
         if (velocity.Length() > 0)
         {
             velocity = velocity.Normalized() * Speed;
             if (velocity.X != 0)
             {
-                animatedSprite2D.Animation = "walk";
-                animatedSprite2D.FlipV = false;
-                // See the note below about the following boolean assignment.
-                animatedSprite2D.FlipH = velocity.X < 0;
+                animationPlayer.Play("run");
             }
             else if (velocity.Y != 0)
             {
-                animatedSprite2D.Animation = "up";
-                animatedSprite2D.FlipV = velocity.Y > 0;
+                animationPlayer.Play("up");
+                // animationPlayer.FlipV = velocity.Y > 0;
             }
 
-            animatedSprite2D.Play();
+            animationPlayer.Play();
 
             Position += velocity * (float)delta;
             Position = new Vector2(
@@ -88,10 +85,10 @@ public partial class Player : Area2D
         }
         else
         {
-            animatedSprite2D.Stop();
+            animationPlayer.Stop();
         }
     }
-    
+
     public void Start(Vector2 position)
     {
         Position = position;
@@ -101,8 +98,11 @@ public partial class Player : Area2D
 
     private void OnBodyEntered(Node2D body)
     {
-        ProcessPlayerHit();
+        if (body.IsInGroup("Mobs"))
+        {
+            ProcessPlayerHit();
         }
+    }
 
     private void OnAreaEntered(Area2D area)
     {

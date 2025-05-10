@@ -20,4 +20,13 @@ public partial class Mob : RigidBody2D
     {
         QueueFree();
     }
+
+    private void OnBodyEntered(Node body)
+    {
+        if (body is PlayerProjectile projectile)
+        {
+            projectile.Remove();
+            QueueFree();
+        }
+    }
 }

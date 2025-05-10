@@ -23,7 +23,8 @@ radius = 36.0
 height = 98.0
 
 [node name="TrackingMob" type="Area2D" groups=["BossMob", "Mobs"]]
-collision_mask = 0
+collision_layer = 2
+collision_mask = 5
 script = ExtResource("1_1gfgu")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
@@ -43,4 +44,5 @@ wait_time = 7.5
 one_shot = true
 autostart = true
 
+[connection signal="body_entered" from="." to="." method="OnBodyEntered"]
 [connection signal="timeout" from="DeathTimer" to="." method="OnDeathTimerTimeout"]
