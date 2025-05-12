@@ -1,3 +1,4 @@
+using System.Threading;
 using Godot;
 
 public partial class Player : Area2D
@@ -7,17 +8,43 @@ public partial class Player : Area2D
 
     [Export] public int Speed { get; set; } = 400;
 
-    public Vector2 ScreenSize; // Size of the game window.
+    private Vector2 _screenSize; // Size of the game window.
+    
+    // TODO: visualize ammo counter
+    private int _projectilesCount;
 
     private const string MoveUpAction = "move_up";
     private const string MoveDownAction = "move_down";
     private const string MoveLeftAction = "move_left";
     private const string MoveRightAction = "move_right";
+    
 
     public override void _Ready()
     {
-        ScreenSize = GetViewportRect().Size;
+        _screenSize = GetViewportRect().Size;
         Hide();
+    }
+
+    public void Start(Vector2 position)
+    {
+        Position = position;
+        Show();
+        GetNode<CollisionShape2D>("CollisionShape2D").Disabled = false;
+    }
+
+    public bool TryShoot()
+    {
+        int currentValue;
+        do
+        {
+            currentValue = _projectilesCount;
+            if (currentValue == 0)
+            {
+                return false;
+            }
+        } while (Interlocked.CompareExchange(ref _projectilesCount, currentValue - 1, currentValue) != currentValue);
+
+        return true;
     }
 
     public override void _Input(InputEvent @event)
@@ -79,21 +106,14 @@ public partial class Player : Area2D
 
             Position += velocity * (float)delta;
             Position = new Vector2(
-                x: Mathf.Clamp(Position.X, 0, ScreenSize.X),
-                y: Mathf.Clamp(Position.Y, 0, ScreenSize.Y)
+                x: Mathf.Clamp(Position.X, 0, _screenSize.X),
+                y: Mathf.Clamp(Position.Y, 0, _screenSize.Y)
             );
         }
         else
         {
             animationPlayer.Stop();
         }
-    }
-
-    public void Start(Vector2 position)
-    {
-        Position = position;
-        Show();
-        GetNode<CollisionShape2D>("CollisionShape2D").Disabled = false;
     }
 
     private void OnBodyEntered(Node2D body)
@@ -106,14 +126,27 @@ public partial class Player : Area2D
 
     private void OnAreaEntered(Area2D area)
     {
-        ProcessPlayerHit();
+        if (area is Ammo)
+        {
+            AddProjectile();
+        }
+        else
+        {
+            ProcessPlayerHit();
+        }
     }
 
     private void ProcessPlayerHit()
     {
         Hide(); // Player disappears after being hit.
         EmitSignal(SignalName.Hit);
+        _projectilesCount = 0;
         // Must be deferred as we can't change physics properties on a physics callback.
         GetNode<CollisionShape2D>("CollisionShape2D").SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
+    }
+    
+    private void AddProjectile()
+    {
+        Interlocked.Increment(ref _projectilesCount);
     }
 }

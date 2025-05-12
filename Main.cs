@@ -9,6 +9,14 @@ public partial class Main : Node
 
     [Export] public PackedScene PlayerProjectileScene { get; set; }
 
+    [Export] public PackedScene AmmoScene { get; set; }
+
+    [Export] public int TrackingMobSpawnScoreDivider { get; set; } = 25;
+
+    [Export] public int AmmoSpawnScoreDivider { get; set; } = 17;
+
+    private Vector2 _screenSize; // Size of the game window.
+
     private int _score;
 
     private bool _gameActive;
@@ -30,25 +38,34 @@ public partial class Main : Node
         _gameActive = true;
     }
 
+    public override void _Ready()
+    {
+        _screenSize = GetViewport().GetVisibleRect().Size;
+    }
+
     public override void _Input(InputEvent @event)
     {
         if (_gameActive && @event is InputEventMouseButton { Pressed: true } eventMouseButton)
         {
-            // TODO: calculate once per app
-            var collisionShape = GetNode<CollisionShape2D>("Player/CollisionShape2D");
-            var collisionShapeRadius = (collisionShape.Shape as CapsuleShape2D)!.Radius;
-            
-            var eye = GetNode<TextureRect>("Player/Eye");
-            var eyeCenter = eye.GlobalPosition + eye.PivotOffset.Rotated(eye.Rotation) * eye.Scale;
-            var newAngle = eventMouseButton.GlobalPosition - eyeCenter;
-            
-            var projectile = PlayerProjectileScene.Instantiate<PlayerProjectile>();
-            
-            projectile.Position = eyeCenter + new Vector2(collisionShapeRadius, 0).Rotated(eye.Rotation);
-            projectile.Rotation = newAngle.Angle() + float.Pi / 2;
-            projectile.LinearVelocity = newAngle.Normalized() * projectile.Speed;
-                
-            AddChild(projectile);
+            var player = GetNode<Player>("Player");
+            if (player.TryShoot())
+            {
+                // TODO: calculate once per app
+                var collisionShape = GetNode<CollisionShape2D>("Player/CollisionShape2D");
+                var collisionShapeRadius = (collisionShape.Shape as CapsuleShape2D)!.Radius;
+
+                var eye = GetNode<TextureRect>("Player/Eye");
+                var eyeCenter = eye.GlobalPosition + eye.PivotOffset.Rotated(eye.Rotation) * eye.Scale;
+                var newAngle = eventMouseButton.GlobalPosition - eyeCenter;
+
+                var projectile = PlayerProjectileScene.Instantiate<PlayerProjectile>();
+
+                projectile.Position = eyeCenter + new Vector2(collisionShapeRadius, 0).Rotated(eye.Rotation);
+                projectile.Rotation = newAngle.Angle() + float.Pi / 2;
+                projectile.LinearVelocity = newAngle.Normalized() * projectile.Speed;
+
+                AddChild(projectile);
+            }
         }
     }
 
@@ -59,12 +76,13 @@ public partial class Main : Node
 
         var hud = GetNode<Hud>("HUD");
         hud.ShowGameOver(_score);
-        
+
         GetNode<AudioStreamPlayer>("Music").Stop();
         GetNode<AudioStreamPlayer>("DeathSound").Play();
 
         GetTree().CallGroup("Mobs", Node.MethodName.QueueFree);
         GetTree().CallGroup("Projectiles", Node.MethodName.QueueFree);
+        // TODO: remove ammo
         _gameActive = false;
     }
 
@@ -72,31 +90,31 @@ public partial class Main : Node
     {
         SpawnRegularMob();
 
-        var trackingMob = TryGetMobBoss();
-        if (_score % 25 == 0 && _score > 0 && trackingMob is null)
+        var trackingMob = TryGetTrackingMob();
+        if (_score % TrackingMobSpawnScoreDivider == 0 && _score > 0 && trackingMob is null)
         {
             SpawnTrackingMob();
         }
     }
 
-    private TrackingMob? TryGetMobBoss()
+    private TrackingMob? TryGetTrackingMob()
     {
-        var bossMob = GetTree().GetFirstNodeInGroup("BossMob");
-        return bossMob as TrackingMob;
+        var trackingMob = GetTree().GetFirstNodeInGroup("TrackingMob");
+        return trackingMob as TrackingMob;
     }
 
     private void SpawnTrackingMob()
     {
         var trackingMob = TrackingMobScene.Instantiate<TrackingMob>();
-        
+
         var mobSpawnLocation = GetSpawnLocation();
         trackingMob.Position = mobSpawnLocation.Position;
-        
+
         AddChild(trackingMob);
     }
 
     private void SpawnRegularMob()
-    { 
+    {
         var newMob = MobScene.Instantiate<Mob>();
         var mobSpawnLocation = GetSpawnLocation();
 
@@ -127,6 +145,24 @@ public partial class Main : Node
     {
         _score++;
         GetNode<Hud>("HUD").UpdateScore(_score);
+
+        if (_score % AmmoSpawnScoreDivider == 0 && !(GetTree().GetNodeCountInGroup("Ammo") > 0))
+        {
+            SpawnAmmo();
+        }
+    }
+
+    private void SpawnAmmo()
+    {
+        const double offset = 15;
+        var ammo = AmmoScene.Instantiate<Ammo>();
+        var collisionShape = ammo.GetNode<CollisionShape2D>("CollisionShape2D");
+        ammo.Position = new Vector2(
+            (float)GD.RandRange(offset, _screenSize.X - (collisionShape.Shape as RectangleShape2D)!.Size.X * collisionShape.Scale.X),
+            (float)GD.RandRange(offset, _screenSize.Y - (collisionShape.Shape as RectangleShape2D)!.Size.Y * collisionShape.Scale.Y));
+        
+        // TODO: add in the appropriate place
+        AddChild(ammo);
     }
 
     private void OnStartTimerTimeout()
