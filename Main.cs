@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Linq;
+using First2DGame.Extensions;
 
 public partial class Main : Node
 {
@@ -16,6 +18,7 @@ public partial class Main : Node
     [Export] public int AmmoSpawnScoreDivider { get; set; } = 17;
 
     private Vector2 _screenSize; // Size of the game window.
+    private float _playerCollisionShapeRadius;
 
     private int _score;
 
@@ -41,6 +44,9 @@ public partial class Main : Node
     public override void _Ready()
     {
         _screenSize = GetViewport().GetVisibleRect().Size;
+        
+        var collisionShape = GetNode<CollisionShape2D>("Player/CollisionShape2D");
+        _playerCollisionShapeRadius = (collisionShape.Shape as CapsuleShape2D)!.Radius;
     }
 
     public override void _Input(InputEvent @event)
@@ -50,17 +56,13 @@ public partial class Main : Node
             var player = GetNode<Player>("Player");
             if (player.TryShoot())
             {
-                // TODO: calculate once per app
-                var collisionShape = GetNode<CollisionShape2D>("Player/CollisionShape2D");
-                var collisionShapeRadius = (collisionShape.Shape as CapsuleShape2D)!.Radius;
-
                 var eye = GetNode<TextureRect>("Player/Eye");
                 var eyeCenter = eye.GlobalPosition + eye.PivotOffset.Rotated(eye.Rotation) * eye.Scale;
                 var newAngle = eventMouseButton.GlobalPosition - eyeCenter;
 
                 var projectile = PlayerProjectileScene.Instantiate<PlayerProjectile>();
 
-                projectile.Position = eyeCenter + new Vector2(collisionShapeRadius, 0).Rotated(eye.Rotation);
+                projectile.Position = eyeCenter + new Vector2(_playerCollisionShapeRadius, 0).Rotated(eye.Rotation);
                 projectile.Rotation = newAngle.Angle() + float.Pi / 2;
                 projectile.LinearVelocity = newAngle.Normalized() * projectile.Speed;
 
@@ -82,7 +84,7 @@ public partial class Main : Node
 
         GetTree().CallGroup("Mobs", Node.MethodName.QueueFree);
         GetTree().CallGroup("Projectiles", Node.MethodName.QueueFree);
-        // TODO: remove ammo
+        GetTree().CallGroup("Ammo", Node.MethodName.QueueFree);
         _gameActive = false;
     }
 
@@ -160,9 +162,11 @@ public partial class Main : Node
         ammo.Position = new Vector2(
             (float)GD.RandRange(offset, _screenSize.X - (collisionShape.Shape as RectangleShape2D)!.Size.X * collisionShape.Scale.X),
             (float)GD.RandRange(offset, _screenSize.Y - (collisionShape.Shape as RectangleShape2D)!.Size.Y * collisionShape.Scale.Y));
-        
-        // TODO: add in the appropriate place
+
+        var firstMobIndex = GetChildren().FindIndex(n => n.IsInGroup("Mobs"));
+
         AddChild(ammo);
+        MoveChild(ammo, firstMobIndex);
     }
 
     private void OnStartTimerTimeout()
