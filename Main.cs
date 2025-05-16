@@ -67,6 +67,7 @@ public partial class Main : Node
                 projectile.LinearVelocity = newAngle.Normalized() * projectile.Speed;
 
                 AddChild(projectile);
+                GetNode<AudioStreamPlayer>("ShootSound").Play();
             }
         }
     }

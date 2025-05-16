@@ -102,8 +102,6 @@ public partial class Player : Area2D
                 // animationPlayer.FlipV = velocity.Y > 0;
             }
 
-            animationPlayer.Play();
-
             Position += velocity * (float)delta;
             Position = new Vector2(
                 x: Mathf.Clamp(Position.X, 0, _screenSize.X),
@@ -112,7 +110,7 @@ public partial class Player : Area2D
         }
         else
         {
-            animationPlayer.Stop();
+            animationPlayer.Pause();
         }
     }
 

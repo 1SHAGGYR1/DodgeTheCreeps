@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://dahuhlvfreek2"]
+[gd_scene load_steps=5 format=3 uid="uid://lwo5qdhktir7"]
 
 [ext_resource type="Script" uid="uid://cdb67e8u516vu" path="res://PlayerProjectile.cs" id="1_jbg7j"]
 [ext_resource type="Texture2D" uid="uid://cin01clgkx5m7" path="res://icon.svg" id="2_wix7r"]
