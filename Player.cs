@@ -44,6 +44,11 @@ public partial class Player : Area2D
             }
         } while (Interlocked.CompareExchange(ref _projectilesCount, currentValue - 1, currentValue) != currentValue);
 
+        if (_projectilesCount == 0)
+        {
+            GetNode<Node2D>("Helmet").Visible = false;
+        }
+        
         return true;
     }
 
@@ -139,12 +144,17 @@ public partial class Player : Area2D
         Hide(); // Player disappears after being hit.
         EmitSignal(SignalName.Hit);
         _projectilesCount = 0;
+        GetNode<Node2D>("Helmet").Visible = false;
         // Must be deferred as we can't change physics properties on a physics callback.
         GetNode<CollisionShape2D>("CollisionShape2D").SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
     }
     
     private void AddProjectile()
     {
-        Interlocked.Increment(ref _projectilesCount);
+        var newCount = Interlocked.Increment(ref _projectilesCount);
+        if (newCount == 1)
+        {
+            GetNode<Node2D>("Helmet").Visible = true;
+        }
     }
 }

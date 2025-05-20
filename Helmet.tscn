@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://slcmvikw0j8k"]
+
+[ext_resource type="Texture2D" uid="uid://ctjxo2ojpmp54" path="res://art/VisorWithoutUI.svg" id="1_6pqxq"]
+[ext_resource type="Texture2D" uid="uid://b3ogcapsg58qx" path="res://art/Helmet.svg" id="2_svl85"]
+
+[node name="Helmet" type="Node2D"]
+
+[node name="Visor" type="TextureRect" parent="."]
+offset_left = -57.0
+offset_top = -60.0
+offset_right = 343.0
+offset_bottom = 340.0
+scale = Vector2(0.281446, 0.281446)
+texture = ExtResource("1_6pqxq")
+
+[node name="Helmet" type="TextureRect" parent="."]
+offset_left = -42.0
+offset_top = -51.0
+offset_right = 358.0
+offset_bottom = 349.0
+scale = Vector2(0.208621, 0.208621)
+texture = ExtResource("2_svl85")

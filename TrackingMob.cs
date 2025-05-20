@@ -4,6 +4,9 @@ public partial class TrackingMob : Area2D
 {
     [Export] public int Speed { get; set; } = 100;
     
+    [Signal]
+    public delegate void DeathEventHandler();
+    
     public override void _Ready()
     {
         var sprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
@@ -22,13 +25,9 @@ public partial class TrackingMob : Area2D
         Rotation = newAngle;
     }
 
-    private void OnVisibleOnScreenNotifier2dScreenExited()
-    {
-        QueueFree();
-    }
-
     private void OnDeathTimerTimeout()
     {
+        EmitSignal(SignalName.Death);
         // TODO: puff animation
         QueueFree();
     }
@@ -37,6 +36,7 @@ public partial class TrackingMob : Area2D
     {
         if (body is PlayerProjectile projectile)
         {
+            EmitSignal(SignalName.Death);
             projectile.Remove(); 
             QueueFree();
         }

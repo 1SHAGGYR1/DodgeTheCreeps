@@ -13,9 +13,16 @@ public partial class Main : Node
 
     [Export] public PackedScene AmmoScene { get; set; }
 
-    [Export] public int TrackingMobSpawnScoreDivider { get; set; } = 25;
+    [Export] public int TrackingMobSpawnFromInterval { get; set; } = 20;
+    [Export] public int TrackingMobSpawnToInterval { get; set; } = 35;
+    
+    private int _nextTrackingMobSpawn;
 
-    [Export] public int AmmoSpawnScoreDivider { get; set; } = 17;
+    [Export] public int AmmoSpawnFromInterval { get; set; } = 15;
+    
+    [Export] public int AmmoSpawnToInterval { get; set; } = 30;
+    
+    private int _nextAmmoSpawn;
 
     private Vector2 _screenSize; // Size of the game window.
     private float _playerCollisionShapeRadius;
@@ -39,6 +46,8 @@ public partial class Main : Node
         startTimer.Start();
         GetNode<AudioStreamPlayer>("Music").Play();
         _gameActive = true;
+        _nextTrackingMobSpawn = GD.RandRange(TrackingMobSpawnFromInterval, TrackingMobSpawnToInterval);
+        _nextAmmoSpawn = GD.RandRange(AmmoSpawnFromInterval, AmmoSpawnToInterval);
     }
 
     public override void _Ready()
@@ -93,10 +102,13 @@ public partial class Main : Node
     {
         SpawnRegularMob();
 
-        var trackingMob = TryGetTrackingMob();
-        if (_score % TrackingMobSpawnScoreDivider == 0 && _score > 0 && trackingMob is null)
+        if (_score == _nextTrackingMobSpawn)
         {
-            SpawnTrackingMob();
+            var trackingMob = TryGetTrackingMob();
+            if (trackingMob is null)
+            {
+                SpawnTrackingMob();
+            }
         }
     }
 
@@ -112,6 +124,7 @@ public partial class Main : Node
 
         var mobSpawnLocation = GetSpawnLocation();
         trackingMob.Position = mobSpawnLocation.Position;
+        trackingMob.Death += OnTrackingMobDeath;
 
         AddChild(trackingMob);
     }
@@ -149,9 +162,12 @@ public partial class Main : Node
         _score++;
         GetNode<Hud>("HUD").UpdateScore(_score);
 
-        if (_score % AmmoSpawnScoreDivider == 0 && !(GetTree().GetNodeCountInGroup("Ammo") > 0))
+        if (_score == _nextAmmoSpawn)
         {
-            SpawnAmmo();
+            if (!(GetTree().GetNodeCountInGroup("Ammo") > 0))
+            {
+                SpawnAmmo();
+            }
         }
     }
 
@@ -163,7 +179,8 @@ public partial class Main : Node
         ammo.Position = new Vector2(
             (float)GD.RandRange(offset, _screenSize.X - (collisionShape.Shape as RectangleShape2D)!.Size.X * collisionShape.Scale.X),
             (float)GD.RandRange(offset, _screenSize.Y - (collisionShape.Shape as RectangleShape2D)!.Size.Y * collisionShape.Scale.Y));
-
+        ammo.Disappear += OnAmmoDisappear;
+        
         var firstMobIndex = GetChildren().FindIndex(n => n.IsInGroup("Mobs"));
 
         AddChild(ammo);
@@ -174,5 +191,15 @@ public partial class Main : Node
     {
         GetNode<Timer>("MobTimer").Start();
         GetNode<Timer>("ScoreTimer").Start();
+    }
+    
+    private void OnTrackingMobDeath()
+    {
+        _nextTrackingMobSpawn = GD.RandRange(_score + TrackingMobSpawnFromInterval, _score + TrackingMobSpawnToInterval);
+    }
+    
+    private void OnAmmoDisappear()
+    {
+        _nextAmmoSpawn = GD.RandRange(_score + AmmoSpawnFromInterval, _score + AmmoSpawnToInterval);
     }
 }
